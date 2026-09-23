@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String?
+  name         String
+  role         String     @default("SEEKER")
+  phone        String?
+  createdAt    DateTime   @default(now())
+  caregiver    Caregiver?
+}
+
+model Caregiver {
+  id               String           @id @default(cuid())
+  userId           String?          @unique
+  user             User?            @relation(fields: [userId], references: [id])
+  firstName        String
+  lastName         String
+  gender           String
+  birthYear        Int?
+  city             String
+  district         String
+  phone            String
+  whatsapp         String?
+  email            String
+  languages        String
+  careTypes        String
+  workTypes        String
+  experienceYears  Int
+  bio              String
+  photoPath        String?
+  status           String           @default("PENDING")
+  rejectionReason  String?
+  adminNotes       String?
+  applicationLocale String          @default("tr")
+  publishedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  documents        Document[]
+  contactRequests  ContactRequest[]
+  complaints       Complaint[]
+}
+
+model Document {
+  id           String    @id @default(cuid())
+  caregiverId  String
+  caregiver    Caregiver @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  originalName String
+  storedPath   String
+  mimeType     String
+  createdAt    DateTime  @default(now())
+}
+
+model ContactRequest {
+  id                String    @id @default(cuid())
+  caregiverId       String
+  caregiver         Caregiver @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  seekerName        String
+  seekerPhone       String
+  seekerEmail       String?
+  city              String?
+  district          String?
+  careNeed          String?
+  message           String
+  status            String    @default("NEW")
+  adminNotes        String?
+  whatsappNotified  Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Complaint {
+  id            String     @id @default(cuid())
+  caregiverId   String?
+  caregiver     Caregiver? @relation(fields: [caregiverId], references: [id], onDelete: SetNull)
+  reporterName  String
+  reporterPhone String?
+  subject       String
+  body          String
+  status        String     @default("NEW")
+  adminNotes    String?
+  createdAt     DateTime   @default(now())
+}
+
+model JobPosting {
+  id          String   @id @default(cuid())
+  title       String
+  city        String
+  district    String?
+  careType    String?
+  workType    String?
+  description String
+  status      String   @default("DRAFT")
+  createdAt   DateTime @default(now())
+}

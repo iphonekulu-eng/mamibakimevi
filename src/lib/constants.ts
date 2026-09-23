@@ -1,0 +1,44 @@
+export const LOCALES = ["tr", "ru"] as const;
+export type Locale = (typeof LOCALES)[number];
+export const DEFAULT_LOCALE: Locale = "tr";
+
+export const GENDERS = ["FEMALE", "MALE"] as const;
+export const WORK_TYPES = ["LIVE_IN", "DAYTIME", "HOURLY", "FLEXIBLE"] as const;
+export const CARE_TYPES = [
+  "ELDERLY",
+  "PATIENT",
+  "ALZHEIMER",
+  "DISABILITY",
+  "POST_OP",
+  "PALLIATIVE",
+] as const;
+export const LANGUAGES = ["tr", "ru", "uz", "en", "ar", "fa"] as const;
+
+export const APPLICATION_STATUSES = ["PENDING", "APPROVED", "REJECTED"] as const;
+export const REQUEST_STATUSES = ["NEW", "IN_PROGRESS", "CONNECTED", "CLOSED"] as const;
+export const COMPLAINT_STATUSES = ["NEW", "REVIEWED", "RESOLVED", "DISMISSED"] as const;
+export const JOB_STATUSES = ["DRAFT", "PUBLISHED", "CLOSED"] as const;
+
+export const CITIES: Record<string, string[]> = {
+  İstanbul: [
+    "Kadıköy",
+    "Üsküdar",
+    "Beşiktaş",
+    "Şişli",
+    "Bakırköy",
+    "Ataşehir",
+    "Maltepe",
+    "Pendik",
+    "Sarıyer",
+    "Fatih",
+    "Beylikdüzü",
+    "Başakşehir",
+  ],
+  Ankara: ["Çankaya", "Keçiören", "Yenimahalle", "Mamak", "Etimesgut", "Sincan"],
+  İzmir: ["Konak", "Karşıyaka", "Bornova", "Buca", "Çiğli", "Balçova"],
+  Antalya: ["Muratpaşa", "Konyaaltı", "Kepez", "Alanya", "Manavgat"],
+  Bursa: ["Nilüfer", "Osmangazi", "Yıldırım"],
+  Mersin: ["Yenişehir", "Mezitli", "Toroslar"],
+};
+
+export const CITY_NAMES = Object.keys(CITIES);

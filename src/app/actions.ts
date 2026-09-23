@@ -1,0 +1,256 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { saveFile, PUBLIC_UPLOAD, PRIVATE_UPLOAD } from "@/lib/files";
+import { localeFromParam } from "@/lib/i18n";
+import { notifyAdminWhatsApp } from "@/lib/whatsapp";
+import { requireAdmin, createAdminSession, destroyAdminSession } from "@/lib/auth";
+import bcrypt from "bcryptjs";
+import path from "path";
+
+function asList(form: FormData, key: string) {
+  return form.getAll(key).map(String).filter(Boolean);
+}
+
+export async function submitApplication(formData: FormData) {
+  const locale = localeFromParam(String(formData.get("locale") || "tr"));
+  const firstName = String(formData.get("firstName") || "").trim();
+  const lastName = String(formData.get("lastName") || "").trim();
+  const email = String(formData.get("email") || "").trim();
+  const phone = String(formData.get("phone") || "").trim();
+  if (!firstName || !lastName || !email || !phone) {
+    redirect(`/${locale}/apply?error=1`);
+  }
+
+  const photo = formData.get("photo");
+  let photoPath: string | null = null;
+  if (photo instanceof File && photo.size > 0) {
+    const saved = await saveFile(photo, path.join(PUBLIC_UPLOAD, "photos"), "photo");
+    photoPath = "/" + saved.storedPath.replace(/^public\//, "");
+  }
+
+  const caregiver = await prisma.caregiver.create({
+    data: {
+      firstName,
+      lastName,
+      gender: String(formData.get("gender") || "FEMALE"),
+      birthYear: Number(formData.get("birthYear") || 0) || null,
+      city: String(formData.get("city") || ""),
+      district: String(formData.get("district") || ""),
+      phone,
+      whatsapp: String(formData.get("whatsapp") || "") || null,
+      email,
+      languages: JSON.stringify(asList(formData, "languages")),
+      careTypes: JSON.stringify(asList(formData, "careTypes")),
+      workTypes: JSON.stringify(asList(formData, "workTypes")),
+      experienceYears: Number(formData.get("experienceYears") || 0),
+      bio: String(formData.get("bio") || ""),
+      photoPath,
+      status: "PENDING",
+      applicationLocale: locale,
+    },
+  });
+
+  const docs = formData.getAll("documents");
+  for (const doc of docs) {
+    if (doc instanceof File && doc.size > 0) {
+      const saved = await saveFile(
+        doc,
+        path.join(PRIVATE_UPLOAD, "documents"),
+        caregiver.id,
+      );
+      await prisma.document.create({
+        data: {
+          caregiverId: caregiver.id,
+          originalName: saved.originalName,
+          storedPath: saved.storedPath,
+          mimeType: saved.mimeType,
+        },
+      });
+    }
+  }
+
+  redirect(`/${locale}/apply/success`);
+}
+
+export async function submitContactRequest(formData: FormData) {
+  const locale = localeFromParam(String(formData.get("locale") || "tr"));
+  const caregiverId = String(formData.get("caregiverId") || "");
+  const seekerName = String(formData.get("seekerName") || "").trim();
+  const seekerPhone = String(formData.get("seekerPhone") || "").trim();
+  const message = String(formData.get("message") || "").trim();
+  if (!caregiverId || !seekerName || !seekerPhone || !message) {
+    redirect(`/${locale}/contact/${caregiverId}?error=1`);
+  }
+
+  const caregiver = await prisma.caregiver.findFirst({
+    where: { id: caregiverId, status: "APPROVED" },
+  });
+  if (!caregiver) redirect(`/${locale}/caregivers`);
+
+  const request = await prisma.contactRequest.create({
+    data: {
+      caregiverId,
+      seekerName,
+      seekerPhone,
+      seekerEmail: String(formData.get("seekerEmail") || "") || null,
+      city: String(formData.get("city") || "") || null,
+      district: String(formData.get("district") || "") || null,
+      careNeed: String(formData.get("careNeed") || "") || null,
+      message,
+      status: "NEW",
+    },
+  });
+
+  const notice = [
+    "Mami Bakimevi — yeni iletişim talebi",
+    `Talep No: ${request.id}`,
+    `Bakıcı: ${caregiver.firstName} ${caregiver.lastName}`,
+    `Arayan: ${seekerName} / ${seekerPhone}`,
+    `Mesaj: ${message.slice(0, 300)}`,
+  ].join("\n");
+
+  const result = await notifyAdminWhatsApp(notice);
+  if (result.sent) {
+    await prisma.contactRequest.update({
+      where: { id: request.id },
+      data: { whatsappNotified: true },
+    });
+  }
+
+  redirect(`/${locale}/contact/${caregiverId}/success`);
+}
+
+export async function submitComplaint(formData: FormData) {
+  const locale = localeFromParam(String(formData.get("locale") || "tr"));
+  await prisma.complaint.create({
+    data: {
+      reporterName: String(formData.get("reporterName") || "").trim(),
+      reporterPhone: String(formData.get("reporterPhone") || "") || null,
+      subject: String(formData.get("subject") || "").trim(),
+      body: String(formData.get("body") || "").trim(),
+      caregiverId: String(formData.get("caregiverId") || "") || null,
+      status: "NEW",
+    },
+  });
+  redirect(`/${locale}/complaint?ok=1`);
+}
+
+export async function adminLogin(formData: FormData) {
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const password = String(formData.get("password") || "");
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || user.role !== "ADMIN" || !user.passwordHash) {
+    redirect("/admin/login?error=1");
+  }
+  const ok = await bcrypt.compare(password, user.passwordHash);
+  if (!ok) redirect("/admin/login?error=1");
+  await createAdminSession();
+  redirect("/admin");
+}
+
+export async function adminLogout() {
+  await destroyAdminSession();
+  redirect("/admin/login");
+}
+
+export async function setApplicationStatus(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const status = String(formData.get("status"));
+  const rejectionReason = String(formData.get("rejectionReason") || "") || null;
+  await prisma.caregiver.update({
+    where: { id },
+    data: {
+      status,
+      rejectionReason: status === "REJECTED" ? rejectionReason : null,
+      publishedAt: status === "APPROVED" ? new Date() : null,
+    },
+  });
+  redirect(`/admin/applications/${id}`);
+}
+
+export async function updateCaregiverAdmin(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  await prisma.caregiver.update({
+    where: { id },
+    data: {
+      firstName: String(formData.get("firstName") || ""),
+      lastName: String(formData.get("lastName") || ""),
+      city: String(formData.get("city") || ""),
+      district: String(formData.get("district") || ""),
+      phone: String(formData.get("phone") || ""),
+      whatsapp: String(formData.get("whatsapp") || "") || null,
+      email: String(formData.get("email") || ""),
+      bio: String(formData.get("bio") || ""),
+      adminNotes: String(formData.get("adminNotes") || "") || null,
+      experienceYears: Number(formData.get("experienceYears") || 0),
+    },
+  });
+  redirect(`/admin/caregivers/${id}`);
+}
+
+export async function updateRequestStatus(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  await prisma.contactRequest.update({
+    where: { id },
+    data: {
+      status: String(formData.get("status")),
+      adminNotes: String(formData.get("adminNotes") || "") || null,
+    },
+  });
+  redirect(`/admin/requests/${id}`);
+}
+
+export async function updateComplaintStatus(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  await prisma.complaint.update({
+    where: { id },
+    data: {
+      status: String(formData.get("status")),
+      adminNotes: String(formData.get("adminNotes") || "") || null,
+    },
+  });
+  redirect("/admin/complaints");
+}
+
+export async function saveJob(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") || "");
+  const data = {
+    title: String(formData.get("title") || ""),
+    city: String(formData.get("city") || ""),
+    district: String(formData.get("district") || "") || null,
+    careType: String(formData.get("careType") || "") || null,
+    workType: String(formData.get("workType") || "") || null,
+    description: String(formData.get("description") || ""),
+    status: String(formData.get("status") || "DRAFT"),
+  };
+  if (id) {
+    await prisma.jobPosting.update({ where: { id }, data });
+  } else {
+    await prisma.jobPosting.create({ data });
+  }
+  redirect("/admin/jobs");
+}
+
+export async function saveSettings(formData: FormData) {
+  await requireAdmin();
+  const pairs = [
+    ["whatsappEnabled", formData.get("whatsappEnabled") ? "true" : "false"],
+    ["whatsappPhone", String(formData.get("whatsappPhone") || "")],
+    ["whatsappToken", String(formData.get("whatsappToken") || "")],
+  ] as const;
+  for (const [key, value] of pairs) {
+    await prisma.setting.upsert({
+      where: { key },
+      update: { value },
+      create: { key, value },
+    });
+  }
+  redirect("/admin/settings");
+}
