@@ -33,10 +33,16 @@ export default async function CaregiversPage({
   if (workType) where.workTypes = { contains: workType };
   if (language) where.languages = { contains: `"${language}"` };
 
-  const list = await prisma.caregiver.findMany({
-    where,
-    orderBy: { publishedAt: "desc" },
-  });
+  let list: Awaited<ReturnType<typeof prisma.caregiver.findMany>> = [];
+  try {
+    list = await prisma.caregiver.findMany({
+      where,
+      orderBy: { publishedAt: "desc" },
+    });
+  } catch {
+    // DB bağlantısı yoksa boş liste ile devam et
+  }
+
   const districts = city ? CITIES[city] || [] : [];
 
   return (

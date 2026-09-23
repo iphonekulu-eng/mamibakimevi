@@ -9,10 +9,17 @@ export default async function JobsPage({
 }) {
   const locale = localeFromParam((await params).locale);
   const t = getMessages(locale);
-  const jobs = await prisma.jobPosting.findMany({
-    where: { status: "PUBLISHED" },
-    orderBy: { createdAt: "desc" },
-  });
+
+  let jobs: Awaited<ReturnType<typeof prisma.jobPosting.findMany>> = [];
+  try {
+    jobs = await prisma.jobPosting.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    // DB bağlantısı yoksa boş liste ile devam et
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <PageBanner

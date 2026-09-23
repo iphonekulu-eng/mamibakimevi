@@ -12,9 +12,15 @@ export default async function CaregiverProfilePage({
   const { locale: raw, id } = await params;
   const locale = localeFromParam(raw);
   const t = getMessages(locale);
-  const caregiver = await prisma.caregiver.findFirst({
-    where: { id, status: "APPROVED" },
-  });
+
+  let caregiver: Awaited<ReturnType<typeof prisma.caregiver.findFirst>> = null;
+  try {
+    caregiver = await prisma.caregiver.findFirst({
+      where: { id, status: "APPROVED" },
+    });
+  } catch {
+    notFound();
+  }
   if (!caregiver) notFound();
 
   const langs = parseList(caregiver.languages);

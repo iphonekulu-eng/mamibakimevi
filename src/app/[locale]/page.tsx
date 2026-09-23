@@ -12,11 +12,17 @@ export default async function HomePage({
   const { locale: raw } = await params;
   const locale = localeFromParam(raw);
   const t = getMessages(locale);
-  const featured = await prisma.caregiver.findMany({
-    where: { status: "APPROVED" },
-    orderBy: { publishedAt: "desc" },
-    take: 4,
-  });
+
+  let featured: Awaited<ReturnType<typeof prisma.caregiver.findMany>> = [];
+  try {
+    featured = await prisma.caregiver.findMany({
+      where: { status: "APPROVED" },
+      orderBy: { publishedAt: "desc" },
+      take: 4,
+    });
+  } catch {
+    // DB bağlantısı yoksa boş liste ile devam et
+  }
 
   const steps = [t.home.step1, t.home.step2, t.home.step3, t.home.step4];
 
@@ -94,19 +100,21 @@ export default async function HomePage({
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-14">
-        <div className="mb-6 flex items-end justify-between">
-          <h2 className="font-serif text-3xl">{t.home.featured}</h2>
-          <Link className="text-sm font-semibold text-teal" href={tPath(locale, "/caregivers")}>
-            {t.home.searchCta}
-          </Link>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {featured.map((c) => (
-            <CaregiverCard key={c.id} locale={locale} caregiver={c} />
-          ))}
-        </div>
-      </section>
+      {featured.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-14">
+          <div className="mb-6 flex items-end justify-between">
+            <h2 className="font-serif text-3xl">{t.home.featured}</h2>
+            <Link className="text-sm font-semibold text-teal" href={tPath(locale, "/caregivers")}>
+              {t.home.searchCta}
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {featured.map((c) => (
+              <CaregiverCard key={c.id} locale={locale} caregiver={c} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
