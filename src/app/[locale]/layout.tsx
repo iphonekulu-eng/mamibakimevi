@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Footer, Header } from "@/components/SiteChrome";
-import { isLocale } from "@/lib/i18n";
+import { SplashScreen } from "@/components/SplashScreen";
+import { isLocale, localeFromParam } from "@/lib/i18n";
 
 export default async function LocaleLayout({
   children,
@@ -11,8 +12,10 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
+  const loc = localeFromParam(locale);
   return (
     <div className="flex min-h-screen flex-col">
+      <SplashScreen locale={loc} />
       <Header locale={locale} />
       <main className="flex-1">{children}</main>
       <Footer locale={locale} />

@@ -12,6 +12,10 @@ const tr = {
     contact: "İletişim",
   },
   lang: { tr: "Türkçe", ru: "Русский", label: "Dil", switch: "Site dilini değiştir" },
+  splash: {
+    slogan: "Güvenli Bakım, Doğru İnsan",
+    skip: "Geç",
+  },
   home: {
     heroTitle: "Sevdikleriniz için doğru bakımı, kontrollü bir süreçle bulun.",
     heroText:
