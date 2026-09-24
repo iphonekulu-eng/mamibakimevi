@@ -1,8 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { parseList, ageFromYear } from "@/lib/files";
-import { localeFromParam, getMessages, tPath } from "@/lib/i18n";
+import { localeFromParam, getMessages } from "@/lib/i18n";
 import { prisma } from "@/lib/prisma";
+
+const ADMIN_WHATSAPP = "905556874803";
+
+function buildWaMessage(locale: string, caregiver: {
+  firstName: string; lastName: string; city: string; district: string; experienceYears: number;
+}) {
+  if (locale === "ru") {
+    return `Здравствуйте! Я хочу связаться через Mami Bakımevi.\n\nСиделка: ${caregiver.firstName} ${caregiver.lastName[0]}.\nГород: ${caregiver.city} / ${caregiver.district}\nОпыт: ${caregiver.experienceYears} лет`;
+  }
+  return `Merhaba, Mami Bakımevi üzerinden iletişime geçmek istiyorum.\n\nBakıcı: ${caregiver.firstName} ${caregiver.lastName[0]}.\nŞehir: ${caregiver.city} / ${caregiver.district}\nDeneyim: ${caregiver.experienceYears} yıl`;
+}
 
 export default async function CaregiverProfilePage({
   params,
@@ -28,6 +39,10 @@ export default async function CaregiverProfilePage({
   const works = parseList(caregiver.workTypes);
   const age = ageFromYear(caregiver.birthYear);
 
+  const waUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(
+    buildWaMessage(locale, caregiver)
+  )}`;
+
   return (
     <div className="mx-auto grid max-w-5xl gap-8 px-4 py-12 md:grid-cols-[280px_1fr]">
       <aside className="card overflow-hidden">
@@ -48,8 +63,10 @@ export default async function CaregiverProfilePage({
             {age ? ` · ${age}` : ""}
           </p>
           <Link
-            className="btn-primary mt-6 w-full"
-            href={tPath(locale, `/contact/${caregiver.id}`)}
+            className="btn-primary mt-6 block w-full text-center"
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
           >
             {t.profile.contactCta}
           </Link>
