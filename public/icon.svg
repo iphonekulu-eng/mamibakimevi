@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Arka plan -->
+  <rect width="512" height="512" rx="96" fill="#0d5c5c"/>
+  <!-- Kalp şekli -->
+  <path d="M256 370 C256 370 120 280 120 190 C120 145 155 110 200 110 C225 110 246 124 256 145 C266 124 287 110 312 110 C357 110 392 145 392 190 C392 280 256 370 256 370Z" fill="#c8a96e"/>
+  <!-- M harfi -->
+  <text x="256" y="290" font-family="Georgia, serif" font-size="120" font-weight="700" fill="#f5f0e8" text-anchor="middle" dominant-baseline="middle">M</text>
+</svg>
