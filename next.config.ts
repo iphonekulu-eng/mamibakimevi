@@ -9,12 +9,9 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    // Geliştirme ortamında image cache'i minimize et
     minimumCacheTTL: isDev ? 0 : 60,
   },
-  output: undefined, // Netlify Next.js plugin'i kendi yönetir
+  output: undefined,
 };
-
-export default nextConfig;
 
 export default nextConfig;
