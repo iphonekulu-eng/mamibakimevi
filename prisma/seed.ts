@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+﻿import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -113,7 +113,7 @@ async function main() {
         applicationLocale: "ru",
       },
       {
-        firstName: "Dilnoza",
+        firstName: "Dılnaz",
         lastName: "Karimova",
         gender: "FEMALE",
         birthYear: 1991,
