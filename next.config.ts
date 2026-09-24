@@ -1,15 +1,20 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",
     },
   },
-  // Netlify: dosya yükleme için yazılabilir dizin yok,
-  // uploads public/uploads altına kaydedilir — bu Netlify'da kalıcı değil.
-  // Gerçek dosya yükleme için harici storage (S3, Cloudinary vb.) gerekir.
+  images: {
+    // Geliştirme ortamında image cache'i minimize et
+    minimumCacheTTL: isDev ? 0 : 60,
+  },
   output: undefined, // Netlify Next.js plugin'i kendi yönetir
 };
+
+export default nextConfig;
 
 export default nextConfig;
