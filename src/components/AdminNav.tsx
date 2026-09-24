@@ -25,11 +25,19 @@ export function AdminNav() {
           </Link>
         ))}
       </nav>
-      <form action={adminLogout} className="mt-8">
-        <button className="text-sm text-cream/70 underline" type="submit">
-          Çıkış
-        </button>
-      </form>
+      <div className="mt-8 flex flex-col gap-3">
+        <Link
+          href="/tr"
+          className="flex items-center gap-2 rounded-lg border border-cream/20 px-3 py-2 text-sm text-cream/80 hover:bg-white/10"
+        >
+          ← Ana Sayfaya Dön
+        </Link>
+        <form action={adminLogout}>
+          <button className="text-sm text-cream/70 underline" type="submit">
+            Çıkış
+          </button>
+        </form>
+      </div>
     </aside>
   );
 }
