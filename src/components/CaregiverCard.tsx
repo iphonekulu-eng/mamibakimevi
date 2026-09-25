@@ -15,6 +15,11 @@ export function CaregiverCard({
   const langs = parseList(caregiver.languages);
   const cares = parseList(caregiver.careTypes);
   const works = parseList(caregiver.workTypes);
+
+  const isNew =
+    caregiver.publishedAt &&
+    Date.now() - new Date(caregiver.publishedAt).getTime() < 15 * 24 * 60 * 60 * 1000;
+
   return (
     <article className="card overflow-hidden">
       <div className="relative aspect-[4/5] bg-sage/20">
@@ -24,6 +29,16 @@ export function CaregiverCard({
           alt={t.images.portrait}
           className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
         />
+        {isNew && (
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-gold px-2.5 py-0.5 text-[11px] font-bold text-ink shadow">
+            {locale === "ru" ? "Новый" : "Yeni"}
+          </span>
+        )}
+        {caregiver.featured && (
+          <span className="absolute right-2.5 top-2.5 rounded-full bg-teal px-2.5 py-0.5 text-[11px] font-bold text-white shadow">
+            ⭐
+          </span>
+        )}
       </div>
       <div className="space-y-1.5 p-3.5">
         <h3 className="font-serif text-xl leading-tight">
