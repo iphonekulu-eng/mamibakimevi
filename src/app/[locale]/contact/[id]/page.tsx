@@ -94,7 +94,7 @@ export default async function ContactPage({
           <input className="input" name="seekerEmail" type="email" />
         </label>
         <div className="grid gap-4 md:grid-cols-2">
-          <CityDistrictFields cityLabel={t.contact.city} districtLabel={t.contact.district} />
+          <CityDistrictFields cityLabel={t.contact.city} districtLabel={t.contact.district} neighbourhoodLabel={t.contact.neighbourhood} />
         </div>
         <label className="field">
           {t.contact.careNeed}

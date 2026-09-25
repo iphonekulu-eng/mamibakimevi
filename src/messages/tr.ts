@@ -83,6 +83,7 @@ const tr = {
     birthYear: "Doğum yılı",
     city: "Şehir",
     district: "İlçe",
+    neighbourhood: "Mahalle",
     phone: "Telefon",
     whatsapp: "WhatsApp",
     email: "E-posta",
@@ -108,6 +109,7 @@ const tr = {
     email: "E-posta (isteğe bağlı)",
     city: "Şehir",
     district: "İlçe",
+    neighbourhood: "Mahalle",
     careNeed: "Bakım ihtiyacı",
     message: "Mesajınız",
     submit: "Talep gönder",
@@ -141,6 +143,8 @@ const tr = {
     rights: "Tüm hakları saklıdır.",
     disclaimer:
       "Admin onayı, resmi kimlik veya mesleki yeterlilik belgesi doğrulaması yerine geçmez.",
+    kvkk: "Gizlilik Politikası",
+    terms: "Kullanım Şartları",
   },
   gender: { FEMALE: "Kadın", MALE: "Erkek" },
   work: {

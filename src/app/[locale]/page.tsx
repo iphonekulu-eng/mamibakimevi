@@ -16,10 +16,18 @@ export default async function HomePage({
   let featured: Awaited<ReturnType<typeof prisma.caregiver.findMany>> = [];
   try {
     featured = await prisma.caregiver.findMany({
-      where: { status: "APPROVED" },
+      where: { status: "APPROVED", featured: true },
       orderBy: { publishedAt: "desc" },
-      take: 4,
+      take: 12,
     });
+    // featured yoksa son onaylananları göster
+    if (featured.length === 0) {
+      featured = await prisma.caregiver.findMany({
+        where: { status: "APPROVED" },
+        orderBy: { publishedAt: "desc" },
+        take: 4,
+      });
+    }
   } catch {
     // DB bağlantısı yoksa boş liste ile devam et
   }

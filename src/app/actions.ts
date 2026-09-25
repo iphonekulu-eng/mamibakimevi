@@ -72,8 +72,20 @@ export async function submitApplication(formData: FormData) {
     }
   }
 
+  // Admin'e WhatsApp bildirimi gönder
+  const notice = [
+    "🆕 Mami Bakimevi — yeni bakıcı başvurusu",
+    `Ad: ${caregiver.firstName} ${caregiver.lastName}`,
+    `Şehir: ${caregiver.city} / ${caregiver.district}`,
+    `Dil: ${caregiver.applicationLocale.toUpperCase()}`,
+    `Başvuru No: ${caregiver.id}`,
+    `İncelemek için: /admin/applications/${caregiver.id}`,
+  ].join("\n");
+  await notifyAdminWhatsApp(notice);
+
   redirect(`/${locale}/apply/success`);
 }
+
 
 export async function submitContactRequest(formData: FormData) {
   const locale = localeFromParam(String(formData.get("locale") || "tr"));
@@ -173,9 +185,62 @@ export async function setApplicationStatus(formData: FormData) {
   redirect(`/admin/applications/${id}`);
 }
 
+export async function toggleFeatured(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const current = await prisma.caregiver.findUnique({ where: { id }, select: { featured: true } });
+  if (!current) return;
+  await prisma.caregiver.update({
+    where: { id },
+    data: { featured: !current.featured },
+  });
+  redirect(`/admin/caregivers/${id}`);
+}
+
+export async function deleteCaregiver(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  await prisma.caregiver.delete({ where: { id } });
+  redirect("/admin/caregivers");
+}
+
+export async function changeAdminPassword(formData: FormData) {
+  await requireAdmin();
+  const currentPassword = String(formData.get("currentPassword") || "");
+  const newPassword = String(formData.get("newPassword") || "");
+  const confirmPassword = String(formData.get("confirmPassword") || "");
+
+  if (!currentPassword || !newPassword || newPassword.length < 8) {
+    redirect("/admin/settings?pwError=1");
+  }
+  if (newPassword !== confirmPassword) {
+    redirect("/admin/settings?pwError=2");
+  }
+
+  const adminEmail = "admin@mamibakimevi.com";
+  const user = await prisma.user.findUnique({ where: { email: adminEmail } });
+  if (!user?.passwordHash) redirect("/admin/settings?pwError=3");
+
+  const ok = await bcrypt.compare(currentPassword, user.passwordHash!);
+  if (!ok) redirect("/admin/settings?pwError=3");
+
+  const hash = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({ where: { email: adminEmail }, data: { passwordHash: hash } });
+  redirect("/admin/settings?pwOk=1");
+}
+
 export async function updateCaregiverAdmin(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get("id"));
+
+  // Fotoğraf güncelleme
+  const photo = formData.get("photo");
+  let photoPath: string | undefined = undefined;
+  if (photo instanceof File && photo.size > 0) {
+    const saved = await saveFile(photo, path.join(PUBLIC_UPLOAD, "photos"), "photo");
+    photoPath = "/" + saved.storedPath.replace(/^public\//, "");
+  }
+
   await prisma.caregiver.update({
     where: { id },
     data: {
@@ -189,6 +254,7 @@ export async function updateCaregiverAdmin(formData: FormData) {
       bio: String(formData.get("bio") || ""),
       adminNotes: String(formData.get("adminNotes") || "") || null,
       experienceYears: Number(formData.get("experienceYears") || 0),
+      ...(photoPath ? { photoPath } : {}),
     },
   });
   redirect(`/admin/caregivers/${id}`);

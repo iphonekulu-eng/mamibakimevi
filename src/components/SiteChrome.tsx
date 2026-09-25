@@ -87,7 +87,11 @@ export function Footer({ locale }: { locale: Locale }) {
       <div className="mx-auto max-w-6xl px-4 py-10">
         <p className="font-serif text-2xl">{t.brand}</p>
         <p className="mt-2 max-w-2xl text-sm text-cream/80">{t.footer.disclaimer}</p>
-        <p className="mt-6 text-xs text-cream/60">
+        <div className="mt-4 flex flex-wrap gap-4 text-xs text-cream/60">
+          <Link href={`/${locale}/kvkk`} className="hover:text-cream/90">{t.footer.kvkk}</Link>
+          <Link href={`/${locale}/terms`} className="hover:text-cream/90">{t.footer.terms}</Link>
+        </div>
+        <p className="mt-4 text-xs text-cream/60">
           © {new Date().getFullYear()} {t.brand}. {t.footer.rights}
         </p>
       </div>

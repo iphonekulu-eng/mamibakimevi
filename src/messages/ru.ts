@@ -85,6 +85,7 @@ const ru: Messages = {
     birthYear: "Год рождения",
     city: "Город",
     district: "Район",
+    neighbourhood: "Квартал / село",
     phone: "Телефон",
     whatsapp: "WhatsApp",
     email: "Эл. почта",
@@ -110,6 +111,7 @@ const ru: Messages = {
     email: "Эл. почта (необязательно)",
     city: "Город",
     district: "Район",
+    neighbourhood: "Квартал / село",
     careNeed: "Потребность в уходе",
     message: "Сообщение",
     submit: "Отправить запрос",
@@ -143,6 +145,8 @@ const ru: Messages = {
     rights: "Все права защищены.",
     disclaimer:
       "Одобрение администратора не заменяет официальную или профессиональную проверку.",
+    kvkk: "Политика конфиденциальности",
+    terms: "Условия использования",
   },
   gender: { FEMALE: "Женский", MALE: "Мужской" },
   work: {

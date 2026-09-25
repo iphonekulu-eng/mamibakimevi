@@ -50,7 +50,7 @@ export default async function ApplyPage({
             {t.apply.birthYear}
             <input className="input" name="birthYear" type="number" min={1940} max={2010} />
           </label>
-          <CityDistrictFields cityLabel={t.apply.city} districtLabel={t.apply.district} />
+          <CityDistrictFields cityLabel={t.apply.city} districtLabel={t.apply.district} neighbourhoodLabel={t.apply.neighbourhood} />
           <label className="field">
             {t.apply.phone}
             <input className="input" name="phone" required />
