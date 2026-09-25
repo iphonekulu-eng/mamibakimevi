@@ -60,6 +60,7 @@ export default async function CaregiverProfilePage({
           </h1>
           <p className="mt-1 text-sm text-muted">
             {caregiver.city} / {caregiver.district}
+            {caregiver.neighbourhood ? ` · ${caregiver.neighbourhood}` : ""}
             {age ? ` · ${age}` : ""}
           </p>
           <Link

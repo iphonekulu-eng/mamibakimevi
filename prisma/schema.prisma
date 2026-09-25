@@ -35,6 +35,7 @@ model Caregiver {
   birthYear        Int?
   city             String
   district         String
+  neighbourhood    String?
   phone            String
   whatsapp         String?
   email            String
@@ -75,6 +76,7 @@ model ContactRequest {
   seekerEmail       String?
   city              String?
   district          String?
+  neighbourhood     String?
   careNeed          String?
   message           String
   status            String    @default("NEW")
@@ -102,6 +104,7 @@ model JobPosting {
   title       String
   city        String
   district    String?
+  neighbourhood String?
   careType    String?
   workType    String?
   description String
